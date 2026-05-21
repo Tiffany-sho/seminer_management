@@ -29,7 +29,7 @@ export default async function GroupPage({
 
   if (!group) notFound()
 
-  const presentations = group.presentations.map((p) => ({
+  const presentations = group.presentations.map((p: (typeof group.presentations)[number]) => ({
     ...p,
     scheduledAt: p.scheduledAt?.toISOString() ?? null,
   }))

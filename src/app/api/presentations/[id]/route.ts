@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -37,7 +38,7 @@ export async function DELETE(
 
   const { id } = await params
   try {
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const deleted = await tx.presentation.delete({ where: { id } })
       await tx.presentation.updateMany({
         where: { groupId: deleted.groupId, order: { gt: deleted.order } },
