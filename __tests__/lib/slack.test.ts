@@ -27,4 +27,10 @@ describe('sendSlackNotification', () => {
     await sendSlackNotification('テスト')
     expect(fetch).not.toHaveBeenCalled()
   })
+
+  it('Slack webhook が失敗した場合はエラーをスローする', async () => {
+    ;(fetch as jest.Mock).mockResolvedValue({ ok: false, status: 500 })
+
+    await expect(sendSlackNotification('テスト')).rejects.toThrow('Slack webhook failed: 500')
+  })
 })

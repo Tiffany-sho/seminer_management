@@ -6,7 +6,7 @@ const NOTIFY_DAYS_BEFORE = [7, 3, 1]
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -16,10 +16,11 @@ export async function GET(req: Request) {
   for (const days of NOTIFY_DAYS_BEFORE) {
     const target = new Date(now)
     target.setDate(target.getDate() + days)
-    const start = new Date(target)
-    start.setHours(0, 0, 0, 0)
-    const end = new Date(target)
-    end.setHours(23, 59, 59, 999)
+
+    // Get JST date string (YYYY-MM-DD) for the target day
+    const jstDate = target.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' })
+    const start = new Date(`${jstDate}T00:00:00+09:00`)
+    const end = new Date(`${jstDate}T23:59:59.999+09:00`)
 
     const presentations = await prisma.presentation.findMany({
       where: {
@@ -38,16 +39,20 @@ export async function GET(req: Request) {
         `発表者: ${p.presenter.name}`,
         `グループ: ${p.group.name}`,
         `タイトル: ${p.title ?? '（未定）'}`,
-        `発表日: ${p.scheduledAt?.toLocaleDateString('ja-JP')}`,
+        `発表日: ${p.scheduledAt?.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })}`,
         `発表まで *${days}日* です！`,
       ].join('\n')
 
-      await sendSlackNotification(message)
-      await prisma.presentation.update({
-        where: { id: p.id },
-        data: { notified: true },
-      })
-      notifiedCount++
+      try {
+        await sendSlackNotification(message)
+        await prisma.presentation.update({
+          where: { id: p.id },
+          data: { notified: true },
+        })
+        notifiedCount++
+      } catch {
+        // Leave notified: false so the next cron run retries
+      }
     }
   }
 
