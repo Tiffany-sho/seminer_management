@@ -46,7 +46,7 @@ export async function POST(
       data: { resumeUrl: blob.url },
     })
   } catch {
-    await del(blob.url)
+    try { await del(blob.url) } catch { /* best-effort cleanup */ }
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   }
 
