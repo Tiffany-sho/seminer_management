@@ -50,8 +50,8 @@ export async function GET(req: Request) {
           data: { notified: true },
         })
         notifiedCount++
-      } catch {
-        // Leave notified: false so the next cron run retries
+      } catch (err) {
+        console.error(`Failed to notify presentation ${p.id}:`, err)
       }
     }
   }
