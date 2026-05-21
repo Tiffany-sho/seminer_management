@@ -17,6 +17,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 
+  if (!orderedIds.every((id): id is string => typeof id === 'string')) {
+    return NextResponse.json({ error: 'orderedIds must be string[]' }, { status: 400 })
+  }
+
   await prisma.$transaction(
     orderedIds.map((id: string, index: number) =>
       prisma.presentation.update({

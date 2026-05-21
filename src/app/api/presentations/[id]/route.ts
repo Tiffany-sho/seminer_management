@@ -36,17 +36,17 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  let deleted
   try {
-    deleted = await prisma.presentation.delete({ where: { id } })
+    await prisma.$transaction(async (tx) => {
+      const deleted = await tx.presentation.delete({ where: { id } })
+      await tx.presentation.updateMany({
+        where: { groupId: deleted.groupId, order: { gt: deleted.order } },
+        data: { order: { decrement: 1 } },
+      })
+    })
   } catch {
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 })
   }
-
-  await prisma.presentation.updateMany({
-    where: { groupId: deleted.groupId, order: { gt: deleted.order } },
-    data: { order: { decrement: 1 } },
-  })
 
   return new NextResponse(null, { status: 204 })
 }
