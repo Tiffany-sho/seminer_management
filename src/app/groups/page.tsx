@@ -1,9 +1,14 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { Card } from '@/components/ui/Card'
 import { NewGroupForm } from '@/components/groups/NewGroupForm'
+import { auth } from '@/lib/auth'
 
 export default async function GroupsPage() {
+  const session = await auth()
+  if (!session) redirect('/login')
+
   const groups = await prisma.readingGroup.findMany({
     orderBy: { createdAt: 'desc' },
     include: { _count: { select: { presentations: true } } },

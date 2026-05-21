@@ -1,13 +1,17 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { PresentationList } from '@/components/presentations/PresentationList'
 import { AddPresentationForm } from '@/components/presentations/AddPresentationForm'
+import { auth } from '@/lib/auth'
 
 export default async function GroupPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  const session = await auth()
+  if (!session) redirect('/login')
+
   const { id } = await params
 
   const [group, users] = await Promise.all([

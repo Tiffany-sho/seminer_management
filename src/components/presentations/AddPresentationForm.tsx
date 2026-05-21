@@ -18,24 +18,42 @@ interface Props {
 export function AddPresentationForm({ groupId, users }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  if (users.length === 0) {
+    return (
+      <p className="text-[17px] text-[#7a7a7a]">発表者が登録されていません。まずユーザーを作成してください。</p>
+    )
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
+    setError('')
     const form = new FormData(e.currentTarget)
-    await fetch('/api/presentations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        groupId,
-        presenterId: form.get('presenterId'),
-        title: form.get('title') || null,
-        scheduledAt: form.get('scheduledAt') || null,
-      }),
-    })
-    setLoading(false)
-    ;(e.target as HTMLFormElement).reset()
-    router.refresh()
+    try {
+      const res = await fetch('/api/presentations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId,
+          presenterId: form.get('presenterId'),
+          title: form.get('title') || null,
+          scheduledAt: form.get('scheduledAt') || null,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? '追加に失敗しました')
+        return
+      }
+      ;(e.target as HTMLFormElement).reset()
+      router.refresh()
+    } catch {
+      setError('ネットワークエラーが発生しました')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -57,6 +75,7 @@ export function AddPresentationForm({ groupId, users }: Props) {
       </div>
       <Input label="タイトル（任意）" id="title" name="title" />
       <Input label="発表日（任意）" id="scheduledAt" name="scheduledAt" type="date" />
+      {error && <p className="text-red-500 text-[14px] w-full">{error}</p>}
       <Button type="submit" disabled={loading}>
         {loading ? '追加中...' : '発表を追加'}
       </Button>
