@@ -32,6 +32,10 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  await prisma.readingGroup.delete({ where: { id } })
+  try {
+    await prisma.readingGroup.delete({ where: { id } })
+  } catch {
+    return NextResponse.json({ error: 'Delete failed' }, { status: 500 })
+  }
   return new NextResponse(null, { status: 204 })
 }

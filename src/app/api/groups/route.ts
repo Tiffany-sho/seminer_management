@@ -17,7 +17,13 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, description } = await req.json()
+  let name: string | undefined, description: string | undefined
+  try {
+    ;({ name, description } = await req.json())
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
   const group = await prisma.readingGroup.create({
