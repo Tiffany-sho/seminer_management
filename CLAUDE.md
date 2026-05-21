@@ -68,6 +68,34 @@ SLACK_WEBHOOK_URL=
 BLOB_READ_WRITE_TOKEN=   # Vercel Blob
 ```
 
+## スタイル・デザイン
+
+スタイルの詳細は **[DESIGN.md](./DESIGN.md)** を参照すること。Apple デザインシステムをベースにした設計指針が定義されている。
+
+### 要点（DESIGN.md より）
+
+- **カラー**: アクセントカラーは `#0066cc`（Action Blue）のみ。第二アクセントカラーは使わない
+- **タイポグラフィ**: `SF Pro Display / SF Pro Text`（代替：Inter）。ボディは17px / weight 400 / line-height 1.47
+- **ボーダーラジアス**: CTAボタンは `pill`（9999px）、カードは `18px`、ユーティリティボタンは `8px`
+- **シャドウ**: 影は商品画像のみ（`rgba(0,0,0,0.22) 3px 5px 30px`）。カード・ボタンに影は使わない
+- **レイアウト**: セクションは Light tile ↔ Dark tile の交互配置。余白の基本単位は8px
+- **インタラクション**: ボタンのアクティブ状態は `transform: scale(0.95)` のみ
+
+### Tailwind への適用方針
+
+```js
+// tailwind.config.js に追加するカスタムトークン例
+colors: {
+  primary: '#0066cc',
+  'primary-focus': '#0071e3',
+  'primary-on-dark': '#2997ff',
+  ink: '#1d1d1f',
+  canvas: '#ffffff',
+  'canvas-parchment': '#f5f5f7',
+  'surface-tile-1': '#272729',
+}
+```
+
 ## 開発ルール
 
 - コンポーネントはすべてTypeScriptで型付け（`any` 禁止）
