@@ -15,22 +15,27 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const form = new FormData(e.currentTarget)
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: form.get('email'),
-        name: form.get('name'),
-        password: form.get('password'),
-      }),
-    })
-    setLoading(false)
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? '登録に失敗しました')
-    } else {
-      router.push('/login')
+    try {
+      const form = new FormData(e.currentTarget)
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.get('email'),
+          name: form.get('name'),
+          password: form.get('password'),
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? '登録に失敗しました')
+      } else {
+        router.push('/login')
+      }
+    } catch {
+      setError('ネットワークエラーが発生しました')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -45,7 +50,9 @@ export default function RegisterPage() {
         <Input label="お名前" id="name" name="name" type="text" required />
         <Input label="メールアドレス" id="email" name="email" type="email" required />
         <Input label="パスワード（8文字以上）" id="password" name="password" type="password" required minLength={8} />
-        {error && <p className="text-red-500 text-[14px]">{error}</p>}
+        <p role="alert" className="text-red-500 text-[14px] min-h-[20px]">
+          {error}
+        </p>
         <Button type="submit" disabled={loading} className="mt-2">
           {loading ? '作成中...' : 'アカウント作成'}
         </Button>
@@ -53,7 +60,7 @@ export default function RegisterPage() {
 
       <p className="mt-6 text-[14px] text-[#7a7a7a] text-center">
         すでにアカウントをお持ちの方は{' '}
-        <Link href="/login" className="text-[#0066cc]">
+        <Link href="/login" className="text-[#0066cc] hover:underline">
           ログイン
         </Link>
       </p>

@@ -2,13 +2,14 @@
 
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -17,16 +18,22 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const form = new FormData(e.currentTarget)
-    const result = await signIn('credentials', {
-      email: form.get('email'),
-      password: form.get('password'),
-      redirect: false,
-    })
-    setLoading(false)
-    if (result?.error) {
-      setError('メールアドレスまたはパスワードが正しくありません')
-    } else {
-      router.push('/dashboard')
+    try {
+      const result = await signIn('credentials', {
+        email: form.get('email'),
+        password: form.get('password'),
+        redirect: false,
+      })
+      if (result?.error) {
+        setError('メールアドレスまたはパスワードが正しくありません')
+      } else {
+        const callbackUrl = searchParams.get('callbackUrl')
+        const destination =
+          callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/dashboard'
+        router.push(destination)
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -40,7 +47,9 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="メールアドレス" id="email" name="email" type="email" required />
         <Input label="パスワード" id="password" name="password" type="password" required />
-        {error && <p className="text-red-500 text-[14px]">{error}</p>}
+        <p role="alert" className="text-red-500 text-[14px] min-h-[20px]">
+          {error}
+        </p>
         <Button type="submit" disabled={loading} className="mt-2">
           {loading ? 'ログイン中...' : 'ログイン'}
         </Button>
@@ -48,7 +57,7 @@ export default function LoginPage() {
 
       <p className="mt-6 text-[14px] text-[#7a7a7a] text-center">
         アカウントをお持ちでない方は{' '}
-        <Link href="/register" className="text-[#0066cc]">
+        <Link href="/register" className="text-[#0066cc] hover:underline">
           新規登録
         </Link>
       </p>
