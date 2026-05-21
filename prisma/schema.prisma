@@ -36,7 +36,7 @@ model Presentation {
   resumeUrl   String?
   notified    Boolean      @default(false)
   createdAt   DateTime     @default(now())
-  presenter   User         @relation(fields: [presenterId], references: [id])
+  presenter   User         @relation(fields: [presenterId], references: [id], onDelete: Cascade)
   presenterId String
   group       ReadingGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId     String
