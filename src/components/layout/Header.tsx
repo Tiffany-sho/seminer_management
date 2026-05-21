@@ -6,9 +6,10 @@ export async function Header() {
 
   return (
     <header className="h-[44px] bg-black flex items-center px-6 sticky top-0 z-50">
-      <nav className="flex items-center justify-between w-full max-w-[1440px] mx-auto">
+      <nav aria-label="メインナビゲーション" className="flex items-center justify-between w-full max-w-[1440px] mx-auto">
         <Link
           href="/dashboard"
+          aria-label="ホーム"
           className="text-white text-[12px] tracking-[-0.12px]"
         >
           輪読管理
