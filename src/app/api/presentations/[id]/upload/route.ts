@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
+import { put, del } from '@vercel/blob'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -16,8 +16,16 @@ export async function POST(
 ) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
+
+  const presentation = await prisma.presentation.findUnique({ where: { id } })
+  if (!presentation) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (presentation.presenterId !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const formData = await req.formData()
   const file = formData.get('file') as File | null
 
@@ -29,12 +37,18 @@ export async function POST(
     return NextResponse.json({ error: 'Only PDF or PowerPoint allowed' }, { status: 400 })
   }
 
-  const blob = await put(`resumes/${id}/${file.name}`, file, { access: 'public' })
+  const ext = file.name.endsWith('.pptx') ? '.pptx' : file.name.endsWith('.ppt') ? '.ppt' : '.pdf'
+  const blob = await put(`resumes/${id}/resume${ext}`, file, { access: 'public', allowOverwrite: true })
 
-  const updated = await prisma.presentation.update({
-    where: { id },
-    data: { resumeUrl: blob.url },
-  })
+  try {
+    await prisma.presentation.update({
+      where: { id },
+      data: { resumeUrl: blob.url },
+    })
+  } catch {
+    await del(blob.url)
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+  }
 
-  return NextResponse.json({ url: blob.url, presentation: updated })
+  return NextResponse.json({ url: blob.url })
 }

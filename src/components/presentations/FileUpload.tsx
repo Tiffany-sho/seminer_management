@@ -21,18 +21,23 @@ export function FileUpload({ presentationId, currentUrl, onUploaded }: Props) {
     const form = new FormData()
     form.append('file', file)
 
-    const res = await fetch(`/api/presentations/${presentationId}/upload`, {
-      method: 'POST',
-      body: form,
-    })
+    try {
+      const res = await fetch(`/api/presentations/${presentationId}/upload`, {
+        method: 'POST',
+        body: form,
+      })
 
-    setLoading(false)
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? 'アップロードに失敗しました')
-      return
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? 'アップロードに失敗しました')
+        return
+      }
+      onUploaded()
+    } catch {
+      setError('ネットワークエラーが発生しました')
+    } finally {
+      setLoading(false)
     }
-    onUploaded()
   }
 
   return (
