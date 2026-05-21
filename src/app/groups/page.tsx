@@ -20,7 +20,7 @@ export default async function GroupsPage() {
         <p className="text-[17px] text-[#7a7a7a]">グループがありません。作成してください。</p>
       ) : (
         <div className="grid gap-4">
-          {groups.map((g: typeof groups[number]) => (
+          {groups.map((g) => (
             <Link key={g.id} href={`/groups/${g.id}`}>
               <Card className="hover:border-[#0066cc] transition-colors cursor-pointer">
                 <h2 className="text-[21px] font-semibold text-[#1d1d1f]">{g.name}</h2>
