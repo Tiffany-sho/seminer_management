@@ -1,13 +1,13 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState('')
@@ -38,22 +38,30 @@ export default function LoginPage() {
   }
 
   return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <Input label="メールアドレス" id="email" name="email" type="email" required />
+      <Input label="パスワード" id="password" name="password" type="password" required />
+      <p role="alert" className="text-red-500 text-[14px] min-h-[20px]">
+        {error}
+      </p>
+      <Button type="submit" disabled={loading} className="mt-2">
+        {loading ? 'ログイン中...' : 'ログイン'}
+      </Button>
+    </form>
+  )
+}
+
+export default function LoginPage() {
+  return (
     <div className="bg-white rounded-[18px] p-8 w-full max-w-sm">
       <h1 className="text-[34px] font-semibold text-[#1d1d1f] tracking-[-0.374px] mb-2">
         ログイン
       </h1>
       <p className="text-[17px] text-[#7a7a7a] mb-8">輪読管理システム</p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input label="メールアドレス" id="email" name="email" type="email" required />
-        <Input label="パスワード" id="password" name="password" type="password" required />
-        <p role="alert" className="text-red-500 text-[14px] min-h-[20px]">
-          {error}
-        </p>
-        <Button type="submit" disabled={loading} className="mt-2">
-          {loading ? 'ログイン中...' : 'ログイン'}
-        </Button>
-      </form>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
 
       <p className="mt-6 text-[14px] text-[#7a7a7a] text-center">
         アカウントをお持ちでない方は{' '}
